@@ -161,7 +161,7 @@ export default class Trigger {
    */
   private getTriggeredPredictions(
     fileName: string,
-    predictions: IDeepStackPrediction[],
+    predictions: IDeepStackPrediction[] | number,
   ): IDeepStackPrediction[] | undefined {
     const triggeredPredictions = predictions.filter(prediction => this.isTriggered(fileName, prediction));
 
