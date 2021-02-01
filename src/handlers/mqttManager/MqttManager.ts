@@ -143,10 +143,9 @@ async function publishNonMatch(
   log.verbose("MQTT", `${fileName}: Publishing NonEvent to ${messageConfig.topic}`);
 
   // Build the detection payload
-  const detectionPayload = messageConfig.payload
+  const detectionPayload = (messageConfig.payload
     ? mustacheFormatter.format(messageConfig.payload, fileName, trigger, []) + "&flagalert=0"
-    : "";
-
+    : "").split("&").shift().join("&");
   return client.publish(messageConfig.topic, detectionPayload, { retain: retain });
 }
 
