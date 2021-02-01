@@ -122,6 +122,7 @@ export default class Trigger {
 
     if (predictions === 0) {
       MqttManager.processTrigger(fileName, this, 0);
+      return;
     }
     // Check to see if any predictions cause this to activate.
     const triggeredPredictions = this.getTriggeredPredictions(fileName, predictions);
