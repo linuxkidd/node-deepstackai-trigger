@@ -66,7 +66,7 @@ export async function processTrigger(
   fileName: string,
   trigger: Trigger,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  predictions: IDeepStackPrediction[] | number,
+  predictions: IDeepStackPrediction[],
 ): Promise<MQTT.IPublishPacket[]> {
   if (!isEnabled) {
     return [];
@@ -87,7 +87,7 @@ export async function processTrigger(
   return Promise.all([
     // Publish all the detection messages
     ...trigger.mqttHandlerConfig?.messages.map(message => {
-      if ( predictions === 0 ) {
+      if ( predictions.length === 0 ) {
         return publishNonMatch(fileName, trigger, message)
       } else {
         return publishDetectionMessage(fileName, trigger, message, predictions);
@@ -144,7 +144,7 @@ async function publishNonMatch(
 
   // Build the detection payload
   const detectionPayload = messageConfig.payload
-    ? mustacheFormatter.format(messageConfig.payload, fileName, trigger) + "&flagalert=0"
+    ? mustacheFormatter.format(messageConfig.payload, fileName, trigger, []) + "&flagalert=0"
     : "";
 
   return client.publish(messageConfig.topic, detectionPayload, { retain: retain });
