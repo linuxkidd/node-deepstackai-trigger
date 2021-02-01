@@ -121,12 +121,12 @@ export default class Trigger {
     }
 
     if (predictions === 0) {
-      MqttManager.publishNonMatch(fileName, this);
+      MqttManager.processTrigger(fileName, this, 0);
     }
     // Check to see if any predictions cause this to activate.
     const triggeredPredictions = this.getTriggeredPredictions(fileName, predictions);
     if (!triggeredPredictions) {
-      MqttManager.publishNonMatch(fileName, this);
+      MqttManager.processTrigger(fileName, this, 0);
       MqttManager.publishStatisticsMessage(TriggerManager.triggeredCount, TriggerManager.analyzedFilesCount);
       return;
     }
