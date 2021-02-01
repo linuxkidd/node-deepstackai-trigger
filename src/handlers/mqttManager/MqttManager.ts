@@ -66,7 +66,7 @@ export async function processTrigger(
   fileName: string,
   trigger: Trigger,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  predictions: IDeepStackPrediction[],
+  predictions: IDeepStackPrediction[] | number,
 ): Promise<MQTT.IPublishPacket[]> {
   if (!isEnabled) {
     return [];
@@ -87,7 +87,11 @@ export async function processTrigger(
   return Promise.all([
     // Publish all the detection messages
     ...trigger.mqttHandlerConfig?.messages.map(message => {
-      return publishDetectionMessage(fileName, trigger, message, predictions);
+      if ( predictions === 0 ) {
+        return publishNonMatch(fileName, trigger, message)
+      } else {
+        return publishDetectionMessage(fileName, trigger, message, predictions);
+      }
     }),
     // Then publish the statistics message
     publishTriggerStatisticsMessage(trigger),
@@ -127,6 +131,21 @@ async function publishDetectionMessage(
         predictions,
         state: "on",
       });
+
+  return client.publish(messageConfig.topic, detectionPayload, { retain: retain });
+}
+
+async function publishNonMatch(
+  fileName: string,
+  trigger: Trigger,
+  messageConfig: MqttMessageConfig
+  ): Promise<MQTT.IPublishPacket> {
+  log.verbose("MQTT", `${fileName}: Publishing NonEvent to ${messageConfig.topic}`);
+
+  // Build the detection payload
+  const detectionPayload = messageConfig.payload
+    ? mustacheFormatter.format(messageConfig.payload, fileName, trigger) + "&flagalert=0"
+    : "";
 
   return client.publish(messageConfig.topic, detectionPayload, { retain: retain });
 }

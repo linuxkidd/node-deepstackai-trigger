@@ -74,7 +74,7 @@ export default class Trigger {
     this._lastTriggerTime = new Date("1/1/1970");
   }
 
-  private async analyzeImage(fileName: string): Promise<IDeepStackPrediction[] | undefined> {
+  private async analyzeImage(fileName: string): Promise<IDeepStackPrediction[] | number | undefined> {
     log.verbose(`Trigger ${this.name}`, `${fileName}: Analyzing`);
     const startTime = new Date();
     const analysis = await analyzeImage(fileName, this.customEndpoint).catch(e => {
@@ -91,7 +91,7 @@ export default class Trigger {
 
     if (analysis.predictions.length == 0) {
       log.verbose(`Trigger ${this.name}`, `${fileName}: No objects detected. (${this.analysisDuration} ms)`);
-      return undefined;
+      return 0;
     }
 
     log.verbose(
@@ -120,9 +120,13 @@ export default class Trigger {
       return;
     }
 
+    if (predictions === 0) {
+      MqttManager.publishNonMatch(fileName, this);
+    }
     // Check to see if any predictions cause this to activate.
     const triggeredPredictions = this.getTriggeredPredictions(fileName, predictions);
     if (!triggeredPredictions) {
+      MqttManager.publishNonMatch(fileName, this);
       MqttManager.publishStatisticsMessage(TriggerManager.triggeredCount, TriggerManager.analyzedFilesCount);
       return;
     }
